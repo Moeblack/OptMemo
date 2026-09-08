@@ -48,10 +48,12 @@ contract explicit, in the text the tool actually prints.
   is a pointer, not a retelling: it keeps each memory's topic, the exact file
   or section that holds the detail, its applicability and any lesson,
   preference or hard rule, and points to the detail instead of restating it.
-  They merge pointers to one target, drop repeated progress, preserve
-  correction / supersession precedence, and forbid dropping a unique detail
-  unless the input shows the entry already holds it. Inventing facts stays
-  forbidden and the byte limit is unchanged.
+  If the merged detail has no file yet, or no longer fits one line, the rule
+  allows writing it to a new file or section first -- creating that address
+  at nap time -- and pointing there. They merge pointers to one target, drop
+  repeated progress, preserve correction / supersession precedence, and
+  forbid dropping a unique detail unless the input shows the entry already
+  holds it. Inventing facts stays forbidden and the byte limit is unchanged.
 
 The agent keeps files and pointers in step; the user is not asked to file or
 classify memories.

@@ -44,12 +44,14 @@ contract explicit, in the text the tool actually prints.
   in its identifying clues, or a genuinely new long-term rule may be.
 - **No pointer without the detail.** An agent must not write a pointer, or
   say a detail is saved, before the detail is actually written.
-- **Compression rules** (the `memo nap` prompt) keep each memory's topic,
-  entry and applicability, merge pointers to one target, drop detail the
-  entry already carries and repeated progress, preserve correction /
-  supersession precedence, and forbid dropping a unique detail unless the
-  input shows the entry already holds it. Inventing facts stays forbidden and
-  the byte limit is unchanged.
+- **Compression rules** (the `memo nap` prompt) state that a compressed line
+  is a pointer, not a retelling: it keeps each memory's topic, the exact file
+  or section that holds the detail, its applicability and any lesson,
+  preference or hard rule, and points to the detail instead of restating it.
+  They merge pointers to one target, drop repeated progress, preserve
+  correction / supersession precedence, and forbid dropping a unique detail
+  unless the input shows the entry already holds it. Inventing facts stays
+  forbidden and the byte limit is unchanged.
 
 The agent keeps files and pointers in step; the user is not asked to file or
 classify memories.

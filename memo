@@ -464,17 +464,18 @@ def pending_count(d, T):
 
 # What a compression keeps and what it may drop. It is printed with every
 # nap prompt, so it stays one short rule and no tutorial. It cannot make a
-# summary lossless: it tells the agent what a pointer-first memory has to
-# preserve, and forbids inventing what the input does not say.
+# summary lossless: it tells the agent that a compressed line is a pointer --
+# what that pointer must carry, and what it may drop once the file holds the
+# detail -- and forbids inventing what the input does not say.
 NAP_RULES = (
-    "Keep what has lasting effect, drop what does not. Invent nothing.\n"
-    "Keep, for each memory kept: its identifying topic, the exact file or\n"
-    "section that holds the detail (never a bare directory), when it applies,\n"
-    "and any lesson, preference or hard rule. Merge pointers to one target;\n"
-    "drop detail the entry already carries, repeated progress, and what a\n"
-    "line here already says. Drop a unique detail only if these lines show\n"
-    "the entry already holds it. If a line corrects or replaces another, say\n"
-    "which now holds; infer nothing."
+    "Compress into a pointer, not a retelling: keep each memory's topic, the\n"
+    "exact file or section that holds its detail (never a bare directory), when\n"
+    "it applies, and any lesson, preference or hard rule. Where that file holds\n"
+    "the detail, the line points to it instead of restating it. Drop what has\n"
+    "no lasting effect, repeated progress, and what a line here already says;\n"
+    "merge pointers to one target. If a line corrects or replaces another, say\n"
+    "which now holds. Invent nothing, and drop a unique detail only if these\n"
+    "lines show the entry already holds it."
 )
 
 

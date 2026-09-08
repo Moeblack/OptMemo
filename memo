@@ -429,8 +429,11 @@ def check(text):
             "separately." % (text.count("\n") + 1))
     n = len(text.encode())
     if n > ENTRY_CHARS:
-        die("Too long: %d bytes, limit %d. Accented characters cost 2 bytes. "
-            "Compress it further." % (n, ENTRY_CHARS))
+        die("Too long: %d bytes, limit %d. Do not cram: write the detail into "
+            "the file that owns it -- a new file or section is fine -- and "
+            "keep a pointer: topic, exact file or section, when it applies, "
+            "any lesson or rule. Accented characters cost 2 bytes."
+            % (n, ENTRY_CHARS))
     return text
 
 

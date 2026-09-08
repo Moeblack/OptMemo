@@ -37,7 +37,9 @@ contract explicit, in the text the tool actually prints.
   decisions, attempts and why they failed, project history go into the file
   that owns them *before* `memo note`. The note carries the identifying
   topic, the exact file or section (never a bare directory), the conditions
-  under which it applies, and any lesson, preference or hard rule.
+  under which it applies, and any lesson, preference or hard rule. A line
+  over the byte limit is rejected with that same instruction — write the
+  detail into its file, keep the pointer — not with "compress it further".
 - **A note is not a progress feed.** It records a durable entry or a
   standalone hard rule — not every event or step. A detail already covered by
   the same entry is not re-noted; a new or moved entry, a substantive change

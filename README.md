@@ -1,13 +1,22 @@
-# OptMem
+# OptMemo
 
-Permanent memory for AI agents. A 426-token prompt, a script, plug and play.
+A fork of [OptMem](https://github.com/VictorTaelin/OptMem) that changes the
+**record and compression rules**: what an agent writes into a memory, and
+what a compression may keep or drop. A short prompt, a script, plug and play.
 
 ![how OptMem works](anim/optmem.gif)
+
+> **Status: not deployed.** This is an independent, uninstalled fork. It does
+> not change any running memory: an existing `~/.optmem/memo`, its `memory/`,
+> and the `## Memory` block already pasted into your `AGENTS.md` (or
+> `CLAUDE.md`) keep behaving exactly as before. Nothing here installs itself,
+> and an external `AGENTS.md` may still override these rules. See
+> [Adopting this fork](#adopting-this-fork).
 
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/VictorTaelin/OptMem/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Moeblack/OptMemo/main/install.sh | sh
 ```
 
 It prints a `## Memory` block. Paste that at the top of your agent's
@@ -15,6 +24,62 @@ It prints a `## Memory` block. Paste that at the top of your agent's
 update.
 
 The tool lands at `~/.optmem/memo`; put `~/.optmem` on `PATH` to type `memo`.
+
+## What this fork changes
+
+Upstream leaves two prompts generic: `note` fires on "anything new / worth
+keeping", and `nap` says only "keep what has lasting effect, drop what does
+not". In practice that yields event one-liners and vague pointers instead of
+enough clues to find the detail again. OptMemo makes the pointer-first
+contract explicit, in the text the tool actually prints.
+
+- **Detail first, pointer after** (the `memo init` block). Parameters,
+  decisions, attempts and why they failed, project history go into the file
+  that owns them *before* `memo note`. The note carries the identifying
+  topic, the exact file or section (never a bare directory), the conditions
+  under which it applies, and any lesson, preference or hard rule.
+- **A note is not a progress feed.** It records a durable entry or a
+  standalone hard rule — not every event or step. A detail already covered by
+  the same entry is not re-noted; a new or moved entry, a substantive change
+  in its identifying clues, or a genuinely new long-term rule may be.
+- **No pointer without the detail.** An agent must not write a pointer, or
+  say a detail is saved, before the detail is actually written.
+- **Compression rules** (the `memo nap` prompt) keep each memory's topic,
+  entry and applicability, merge pointers to one target, drop detail the
+  entry already carries and repeated progress, preserve correction /
+  supersession precedence, and forbid dropping a unique detail unless the
+  input shows the entry already holds it. Inventing facts stays forbidden and
+  the byte limit is unchanged.
+
+The agent keeps files and pointers in step; the user is not asked to file or
+classify memories.
+
+## Limits
+
+- This is a **prompt change, not lossless compression and not a recall
+  guarantee**. It cannot recover detail the agent never wrote down.
+- The underlying detail exists only if the agent really writes it to a real
+  file; a pointer is a clue, not storage.
+- It does **not** retroactively shrink existing history. Old memories keep
+  the text they were written with; the new rules apply to new notes and new
+  compressions.
+- Paging (`PART_CHARS` / `PART_LINES`) is a transport limit for the harness,
+  not a token-saving metric and not a compression result.
+- Storage format, the append-only `LOG.txt`, the binary `TREE`, the
+  fixed-width records, and command compatibility are unchanged from upstream.
+
+## Adopting this fork
+
+Nothing below happens automatically.
+
+1. Install this fork's tool (the `curl` line above) or copy its `memo` over
+   `~/.optmem/memo`.
+2. Run `~/.optmem/memo init` and replace the existing `## Memory` block in
+   your `AGENTS.md` / `CLAUDE.md` with the one it prints.
+3. If your `AGENTS.md` (or another rule file) already says when to note,
+   remove or reconcile that text — otherwise it wins over the pasted block.
+
+Until you do that, your current memory and behavior are unchanged.
 
 ## Commands
 
@@ -75,14 +140,23 @@ Without it you do not know who you are, or what was decided and tried.
 Run `~/.optmem/memo wake` before any other tool call, in every session, and
 then do exactly what it prints, to the end of its output.
 
-### While working: register memories (mandatory)
+### While working: record memories (mandatory)
 
-Call `~/.optmem/memo note "<1 line, max 280 bytes>"` whenever you learn
-something new, or something worth keeping happens. That covers a task
-worth real effort, a fact or insight the user teaches you, anything you
-learn about their life (even indirectly), any event of lasting effect.
+Write the detail first, then the pointer. Parameters, decisions, attempts
+and why they failed, project history: put them in the file that owns them.
+Then call `~/.optmem/memo note "<1 line, max 280 bytes>"` with what will find
+that detail again: its topic, the exact file or section that holds it
+(never a bare directory), when it applies, and any lesson, preference or
+hard rule the session needs.
 
-Do not register redundant memories.
+A note is not a progress feed: do not note every event, step or update.
+Note a durable entry, or a hard rule that stands on its own. If a note
+already points to the same entry, do not note it again unless the entry is
+new or moved, its identifying clues changed, or it is a new long-term rule.
+Never write a pointer, or say a detail is saved, before it is.
+
+You keep files and pointers in step; the user does not file memories for
+you.
 
 If `~/.optmem/memo note` asks a compression: do it before your next action.
 

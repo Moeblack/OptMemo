@@ -12,7 +12,9 @@
   {memo} import <file>    bulk-load dated memories (bootstrap only).
 
 The memories live in ~/.optmem/memory, or in $MEMORY_DIR if set.
-See github.com/VictorTaelin/OptMem.
+OptMemo is a fork of github.com/VictorTaelin/OptMem; its record and
+compression rules, and their limits, are documented at
+github.com/Moeblack/OptMemo.
 """
 
 import datetime
@@ -460,6 +462,22 @@ def pending_count(d, T):
     return n
 
 
+# What a compression keeps and what it may drop. It is printed with every
+# nap prompt, so it stays one short rule and no tutorial. It cannot make a
+# summary lossless: it tells the agent what a pointer-first memory has to
+# preserve, and forbids inventing what the input does not say.
+NAP_RULES = (
+    "Keep what has lasting effect, drop what does not. Invent nothing.\n"
+    "Keep, for each memory kept: its identifying topic, the exact file or\n"
+    "section that holds the detail (never a bare directory), when it applies,\n"
+    "and any lesson, preference or hard rule. Merge pointers to one target;\n"
+    "drop detail the entry already carries, repeated progress, and what a\n"
+    "line here already says. Drop a unique detail only if these lines show\n"
+    "the entry already holds it. If a line corrects or replaces another, say\n"
+    "which now holds; infer nothing."
+)
+
+
 def nap_prompt(d, lo, hi, left):
     if hi - lo <= RAW_MAX:
         body = "\n".join("  #%d %s %s" % e for e in log_slice(d, lo, hi))
@@ -479,11 +497,9 @@ def nap_prompt(d, lo, hi, left):
         "1 compression remains" if left == 1 else
         "%d compressions remain" % left)
     return ("Compress memories #%d-%d into one line of at most %d bytes.\n"
-            "Keep what has lasting effect, drop what does not. Invent "
-            "nothing.\n\n"
-            "%s\n%s\n"
+            "%s\n\n%s\n%s\n"
             "Run: %s nap %d-%d \"<your line>\""
-            % (lo, hi - 1, ENTRY_CHARS, body, tail, ME, lo, hi - 1))
+            % (lo, hi - 1, ENTRY_CHARS, NAP_RULES, body, tail, ME, lo, hi - 1))
 
 
 def next_nap(d, T):
@@ -511,14 +527,23 @@ Without it you do not know who you are, or what was decided and tried.
 Run `{memo} wake` before any other tool call, in every session, and
 then do exactly what it prints, to the end of its output.
 
-### While working: register memories (mandatory)
+### While working: record memories (mandatory)
 
-Call `{memo} note "<1 line, max {chars} bytes>"` whenever you learn
-something new, or something worth keeping happens. That covers a task
-worth real effort, a fact or insight the user teaches you, anything you
-learn about their life (even indirectly), any event of lasting effect.
+Write the detail first, then the pointer. Parameters, decisions, attempts
+and why they failed, project history: put them in the file that owns them.
+Then call `{memo} note "<1 line, max {chars} bytes>"` with what will find
+that detail again: its topic, the exact file or section that holds it
+(never a bare directory), when it applies, and any lesson, preference or
+hard rule the session needs.
 
-Do not register redundant memories.
+A note is not a progress feed: do not note every event, step or update.
+Note a durable entry, or a hard rule that stands on its own. If a note
+already points to the same entry, do not note it again unless the entry is
+new or moved, its identifying clues changed, or it is a new long-term rule.
+Never write a pointer, or say a detail is saved, before it is.
+
+You keep files and pointers in step; the user does not file memories for
+you.
 
 If `{memo} note` asks a compression: do it before your next action.
 

@@ -1,8 +1,9 @@
 #!/bin/sh
-# OptMem installer. Run it again to update: it only replaces the tool, and
-# `memo init` never touches memories that already exist.
+# OptMemo installer: a fork of OptMem (github.com/VictorTaelin/OptMem).
+# Run it again to update: it only replaces the tool, and `memo init` never
+# touches memories that already exist.
 #
-#   curl -fsSL https://raw.githubusercontent.com/VictorTaelin/OptMem/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/Moeblack/OptMemo/main/install.sh | sh
 
 set -e
 DIR="$HOME/.optmem"
@@ -14,7 +15,7 @@ command -v python3 >/dev/null || {
 }
 
 mkdir -p "$DIR"
-curl -fsSL https://raw.githubusercontent.com/VictorTaelin/OptMem/main/memo -o "$DIR/memo.new"
+curl -fsSL https://raw.githubusercontent.com/Moeblack/OptMemo/main/memo -o "$DIR/memo.new"
 mv "$DIR/memo.new" "$DIR/memo"
 chmod +x "$DIR/memo"
 

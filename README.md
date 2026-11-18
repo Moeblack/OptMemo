@@ -1,186 +1,74 @@
 # OptMemo
 
-A fork of [OptMem](https://github.com/VictorTaelin/OptMem) that changes the
-**record and compression rules**: what an agent writes into a memory, and
-what a compression may keep or drop. A short prompt, a script, plug and play.
+一个面向 Oh My Pi (OMP) 与命令行代理的长期记忆与分层知识库系统。通过「按需手动唤醒 + 分层摘要树 + 对象化文档」的方式，让 AI 在跨会话协作中稳定记住环境配置、操作规范与历史教训，同时避免上下文被海量历史记录撑爆。
 
-![how OptMem works](anim/optmem.gif)
+## 核心特性
 
-> **Status: not deployed.** This is an independent, uninstalled fork. It does
-> not change any running memory: an existing `~/.optmem/memo`, its `memory/`,
-> and the `## Memory` block already pasted into your `AGENTS.md` (or
-> `CLAUDE.md`) keep behaving exactly as before. Nothing here installs itself,
-> and an external `AGENTS.md` may still override these rules. See
-> [Adopting this fork](#adopting-this-fork).
+- **按需手动唤醒**：在 OMP 中通过 `/memo` 命令按需加载记忆摘要视图，日常对话零上下文开销。
+- **分层摘要树（LOG + TREE）**：原始记录按时间追加到 `LOG.txt`，`TREE` 按 2 / 4 / 8 / 16 节点逐层向上归并，支持用 `recall` 正则检索和 `zoom` 逐层展开。
+- **对象化知识文档**：将零散事实沉淀到 `~/.optmem/docs/<对象>/<对象>.md`，用固定五节结构维护现行状态与历史更正。
+- **单行紧凑索引（note）**：每条索引不超过 280 字节，只存类型、关键词、文档锚点与一句话结论。
 
-## Install
+## 安装
+
+### Linux / macOS
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Moeblack/OptMemo/main/install.sh | sh
 ```
 
-It prints a `## Memory` block. Paste that at the top of your agent's
-`AGENTS.md` (or `CLAUDE.md`), and you are done. Run the same line again to
-update.
+### Windows (PowerShell)
 
-The tool lands at `~/.optmem/memo`; put `~/.optmem` on `PATH` to type `memo`.
-
-## What this fork changes
-
-Upstream leaves two prompts generic: `note` fires on "anything new / worth
-keeping", and `nap` says only "keep what has lasting effect, drop what does
-not". In practice that yields event one-liners and vague pointers instead of
-enough clues to find the detail again. OptMemo makes the pointer-first
-contract explicit, in the text the tool actually prints.
-
-- **Detail first, pointer after** (the `memo init` block). Parameters,
-  decisions, attempts and why they failed, project history go into the file
-  that owns them *before* `memo note`. The note carries the identifying
-  topic, the exact file or section (never a bare directory), the conditions
-  under which it applies, and any lesson, preference or hard rule. A line
-  over the byte limit is rejected with that same instruction — write the
-  detail into its file, keep the pointer — not with "compress it further".
-- **A note is not a progress feed.** It records a durable entry or a
-  standalone hard rule — not every event or step. A detail already covered by
-  the same entry is not re-noted; a new or moved entry, a substantive change
-  in its identifying clues, or a genuinely new long-term rule may be.
-- **No pointer without the detail.** An agent must not write a pointer, or
-  say a detail is saved, before the detail is actually written.
-- **Compression rules** (the `memo nap` prompt) state that a compressed line
-  is a pointer, not a retelling: it keeps each memory's topic, the exact file
-  or section that holds the detail, its applicability and any lesson,
-  preference or hard rule, and points to the detail instead of restating it.
-  If the merged detail has no file yet, or no longer fits one line, the rule
-  allows writing it to a new file or section first -- creating that address
-  at nap time -- and pointing there. They merge pointers to one target, drop
-  repeated progress, preserve correction / supersession precedence, and
-  forbid dropping a unique detail unless the input shows the entry already
-  holds it. Inventing facts stays forbidden and the byte limit is unchanged.
-
-The agent keeps files and pointers in step; the user is not asked to file or
-classify memories.
-
-## Limits
-
-- This is a **prompt change, not lossless compression and not a recall
-  guarantee**. It cannot recover detail the agent never wrote down.
-- The underlying detail exists only if the agent really writes it to a real
-  file; a pointer is a clue, not storage.
-- It does **not** retroactively shrink existing history. Old memories keep
-  the text they were written with; the new rules apply to new notes and new
-  compressions.
-- Paging (`PART_CHARS` / `PART_LINES`) is a transport limit for the harness,
-  not a token-saving metric and not a compression result.
-- Storage format, the append-only `LOG.txt`, the binary `TREE`, the
-  fixed-width records, and command compatibility are unchanged from upstream.
-
-## Adopting this fork
-
-Nothing below happens automatically.
-
-1. Install this fork's tool (the `curl` line above) or copy its `memo` over
-   `~/.optmem/memo`.
-2. Run `~/.optmem/memo init` and replace the existing `## Memory` block in
-   your `AGENTS.md` / `CLAUDE.md` with the one it prints.
-3. If your `AGENTS.md` (or another rule file) already says when to note,
-   remove or reconcile that text — otherwise it wins over the pasted block.
-
-Until you do that, your current memory and behavior are unchanged.
-
-## Commands
-
-| | |
-|---|---|
-| `memo wake` | read the memory — the first command of every session |
-| `memo note "..."` | record one memory: one line, up to 280 bytes |
-| `memo nap` | answer the merges that came due |
-| `memo recall <regex>` | search every memory ever recorded, word for word |
-| `memo zoom <lo>-<hi>` | open a tree node into its two halves |
-| `memo forget <lo>-<hi>` | drop a bad summary; the next nap rebuilds it |
-
-Merges arrive one at a time, in the output of `note`. Nothing ever runs in the
-background.
-
-## Files
-
-```
-~/.optmem/
-  memo          the tool: one file of Python 3, no dependencies
-  memory/
-    LOG.txt     every memory, one per line, append-only, never edited
-    TREE/       the summaries: a cache, rebuildable from the log alone
-    config      the sizes, written by `memo config`
+```powershell
+irm https://raw.githubusercontent.com/Moeblack/OptMemo/main/install.ps1 | iex
 ```
 
-```sh
-memo config                  # show the sizes
-memo config WAKE_LINES=300   # how many lines wake prints (96 ≈ 8k tokens)
-memo config WAKE_LINES=      # back to the default
+安装脚本会自动完成以下工作（需已安装 Python 3）：
+- 初始化 `~/.optmem/` 目录与空 `memory/LOG.txt`（已有数据不会覆盖）；
+- 部署 `memo` 与 OMP 扩展（`integrations/omp/extension.ts`、`wake.py`）；
+- 在 `~/.omp/agent/extensions/optmemo.ts` 注册加载入口。
+
+安装完成后重启 OMP，在对话中输入 `/memo` 即可唤醒记忆。
+
+## OptMemo 如何组织记忆记录
+
+OptMemo 把记忆拆成**索引层（LOG / TREE）**与**正文层（docs）**两部分：索引层只负责“找得到”，正文层负责“写清楚”。
+
+### 1. 索引层：单行 `note` 规范
+
+每条记入 `LOG.txt` 的索引严格为一行，不超过 280 字节，格式如下：
+
+```text
+类型｜关键词｜位置｜要点
 ```
 
-`WAKE_LINES` is the only size worth touching, and it is a reading budget, not
-a storage budget: change it whenever, in either direction, and nothing is
-recomputed.
+- **类型**：`入口` / `规则` / `教训` / `更正` 四选一。
+- **关键词**：空格分隔，包含对象名、别名、IP、端口、服务名等，宁多勿少，方便正则检索。
+- **位置**：指向正文层的精确锚点，格式为 `~/.optmem/docs/<对象>/<对象>.md§节名`；如果是无须落盘的口头约定，填 `口头`。
+- **要点**：一句话概括。`入口` 写这里有什么；`规则` 和 `教训` 写结论；`更正` 写 `旧值 → 新值`。不写日期、事件经过或“详见”等废话。
 
-Records are fixed width, so position *is* identity and every lookup is one
-seek. At a million memories (608 MB), `wake` takes 0.03s.
+### 2. 正文层：一个对象一个文件，固定五节
 
-Set `$MEMORY_DIR` to keep `memory/` elsewhere — a synced folder, a git repo.
+每个独立主题或设备在 `~/.optmem/docs/<对象>/<对象>.md` 维护一份主文档，只使用以下五个固定小节：
 
-## The prompt
+1. **现状**：当前生效的配置、版本、地址、拓扑与运行状态。
+2. **操作**：常用维护命令、部署步骤、排查方法。
+3. **凭据**：非公开或局部环境的登录入口、账号说明（建议做好本地权限隔离）。
+4. **坑与教训**：踩过的故障原因、避坑结论与边界条件。
+5. **更正记录**：按时间记录“从旧值改为新值”的变更流水，现行值直接覆盖写在前面对应小节中。
 
-This is what the installer prints, and the whole of the integration.
+当某节内容过长时，拆分为 `<对象>/记录/YYYYMMDD-主题.md`，非文本文件放入 `<对象>/附件/`。
 
-```markdown
-## Memory
+### 3. 写入三步法
 
-Your memory is OptMem:
-- The tool is `~/.optmem/memo`
-- Your memories are in `~/.optmem/memory`
+每次需要沉淀新知识或更新状态时，按以下三步执行：
 
-OptMem outlives every session, compaction, model and vendor change.
-Without it you do not know who you are, or what was decided and tried.
+1. **先查重（`recall`）**：运行 `python3 ~/.optmem/memo recall "<关键词正则>"`，确认是否已有记录。搜到则直接修改对应 `文件§节`，不另起炉灶；没搜到再新建对象文件。
+2. **改正文**：把最新现行值直接更新到对应小节，被替换的旧值顺手记入该文件的 `更正记录`。
+3. **记索引（`note`）**：只有新增入口、规则、教训或发生更正时才追加 `note`；已有入口的常规进展不重复发 `note`。
 
-### At startup: activating OptMem (mandatory)
+### 4. 检索与归并（`recall` / `zoom` / `nap`）
 
-Run `~/.optmem/memo wake` before any other tool call, in every session, and
-then do exactly what it prints, to the end of its output.
-
-### While working: record memories (mandatory)
-
-Write the detail first, then the pointer. Parameters, decisions, attempts
-and why they failed, project history: put them in the file that owns them.
-Then call `~/.optmem/memo note "<1 line, max 280 bytes>"` with what will find
-that detail again: its topic, the exact file or section that holds it
-(never a bare directory), when it applies, and any lesson, preference or
-hard rule the session needs.
-
-A note is not a progress feed: do not note every event, step or update.
-Note a durable entry, or a hard rule that stands on its own. If a note
-already points to the same entry, do not note it again unless the entry is
-new or moved, its identifying clues changed, or it is a new long-term rule.
-Never write a pointer, or say a detail is saved, before it is.
-
-You keep files and pointers in step; the user does not file memories for
-you.
-
-If `~/.optmem/memo note` asks a compression: do it before your next action.
-
-Never edit or delete anything under `~/.optmem/memory`: the tool manages it.
-
-### When you need an old memory: search, or navigate
-
-`~/.optmem/memo recall <regex>` searches every memory, word for word.
-
-Your memories also form a binary tree: #0-1, #2-3 ... exist as one-line
-summaries, pairs of those as #0-3, and so on -- every `#a-b` line wake
-prints is one node of it. `~/.optmem/memo zoom <a-b>` opens a node into its
-two halves, down to the raw memories.
-
-### If you're a subagent: skip everything above
-
-Parallel sessions on this machine are all you, and may all write memories.
-A subagent is not: it must never run `memo`, because it cannot judge what
-is already known, and its notes would arrive duplicated and incorrectly.
-When you spawn one, write: `You are a subagent. Don't run memo.`
-```
+- **`recall "<正则>"`**：在原始 `LOG.txt` 中检索匹配的条目与编号（如 `#1234`）。
+- **`zoom <lo>-<hi>`**：从摘要树的高层编号逐层向下展开，直到定位原始条目。
+- **`nap <lo>-<hi> "<合并行>"`**：当底层条目积累到一定数量时，按树结构向上合并为一行摘要。合并时必须保留所有关键词、`文件§节` 位置以及规则/教训的结论原文；可舍弃类型标记与冗余说明，但禁止改写或臆测原文没有的信息。
